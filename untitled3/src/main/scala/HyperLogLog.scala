@@ -3,20 +3,6 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
  * HyperLogLog algorithm for estimated counting of distinct values
- * A register is maintained which has N slots, where N = 2 ^ M
- * When a value arrives, it's hash is computed (32 bit Murmur hash)
- * This hash is then converted to it's binary representation
- * For the binary representation, rightmost M bits are taken
- * and decimal value of this M bit string is computed
- * This decimal value (Between 0 and N-1) becomes the slot number in register
- * e.g. index in register
- *
- * Then next P bits from right (leaving off rightmost M bits) are taken
- * and run of zeroes is computed from right
- * (Run of zeroes+1) becomes the value to be put into the register slot
- *
- * As multiple values arrive, a particular slot can be filled multiple times
- * We update the value in a slot only if new value is greater than the old value
  */
 class HyperLogLog {
   /**

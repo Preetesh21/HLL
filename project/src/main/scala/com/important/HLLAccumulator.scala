@@ -1,5 +1,7 @@
-import org.apache.spark.util.AccumulatorV2
+package com.important
+
 import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus
+import org.apache.spark.util.AccumulatorV2
 
 class HLLAccumulator[T](precisionValue: Int = 12) extends AccumulatorV2[String, Long] with Serializable {
   require(precisionValue>=4 && precisionValue<=32, "precision value must be between 4 and 32")
@@ -9,7 +11,7 @@ class HLLAccumulator[T](precisionValue: Int = 12) extends AccumulatorV2[String, 
   private var hll: HyperLogLogPlus = instance()
 
   override def isZero: Boolean = {/**
-   * An [[AccumulatorV2 accumulator]] for counting unique elements using a HyperLogLog
+   * An [[AccumulatorV2 accumulator]] for counting unique elements using a com.important.HyperLogLog
    *
    */
     println("size "+ hll.cardinality())

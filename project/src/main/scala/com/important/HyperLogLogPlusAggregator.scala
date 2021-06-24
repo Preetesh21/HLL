@@ -1,3 +1,5 @@
+package com.important
+
 import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
@@ -10,7 +12,7 @@ import java.io._
  *
  * Uses stream-lib HLL Plus implementation
  */
-class HyperLogLogPlusAgg extends UserDefinedAggregateFunction {
+class HyperLogLogPlusAggregator extends UserDefinedAggregateFunction {
   val hll = new HyperLogLogPlus(14, 25)
   @throws(classOf[IOException])
   def serializeHLL(obj: Object): Array[Byte] = {

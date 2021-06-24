@@ -1,6 +1,9 @@
+package com.important
+
 import org.apache.spark.sql.SparkSession
-object hll_defined extends App {
-  val hll = new HyperLogLog
+
+object using_hll_defined_by_me extends App {
+  val hll = new HyperLogLog_defined_by_me
   val spark = SparkSession
     .builder
     .master("local[8]")
@@ -8,10 +11,10 @@ object hll_defined extends App {
     .getOrCreate()
 
   var df = spark.read.format("csv").option("header", "true").load("./src/main/resources/work_leave.csv").toDF()
-  var vals:List[Int] = df.select("ID").collect().map(_(0)).toList.map(_.toString.toInt)
+  var vals: List[Int] = df.select("ID").collect().map(_ (0)).toList.map(_.toString.toInt)
 
   // custom function evaluate type
-  vals.map(i=>{
+  vals.map(i => {
     hll.addValue(i)
     i
   })
@@ -30,5 +33,5 @@ object hll_defined extends App {
 
   println(actualCount)
   println(estimatedCount)
+  spark.stop()
 }
-

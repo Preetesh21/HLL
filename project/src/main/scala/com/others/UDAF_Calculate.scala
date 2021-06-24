@@ -1,6 +1,7 @@
-import org.apache.spark.sql.expressions.MutableAggregationBuffer
-import org.apache.spark.sql.expressions.UserDefinedAggregateFunction
+package com.others
+
 import org.apache.spark.sql.Row
+import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types._
 class UDAF_Calculate extends UserDefinedAggregateFunction {
   override def inputSchema: org.apache.spark.sql.types.StructType =

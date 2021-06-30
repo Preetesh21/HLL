@@ -27,12 +27,55 @@ There were two main data structures to consider from Accumulators and UDAF's and
 
 As part of any data analysis workflow, doing some sort of aggregation across groups, or columns is common. 
 These work exactly like aggregators except for the fact that these are not optimized and might run for a longer duration.
-To define them we need to extend the UDAF class provided by spark and then override the functions such as initialize, update, merge, evaluate.
+One can create a User Defined Aggregate Function in Spark by extending the following ‘UserDefinedAggregationFunction’ class present in the package ‘org.apache.spark.sql.expressions’ and overriding the implementation of the functions such as initialize, update, merge, evaluate.
 
 ### Accumulators
 
 They are shared variables provided to the executor nodes where the operations are performed, and they store the values and in the driver node their values are merged, and final operations could be done. Then there accumulatorV2 API which is an abstraction of accumulators.
-The AccumulatorV2 API in spark enables you to define clean custom accumulators for stats for your job.
+The AccumulatorV2 API in spark enables you to define clean custom accumulators for stats for your job. The AccumulatorV2 abstract class has several methods which need to override reset for resetting the accumulator to zero, and add for add another value into the accumulator, merge for merging another same-type accumulator into this one.
+
+## Solution Approach
+
+So, there are two main parameters to keep in mind while thinking of the solution for the efficient cardinality estimation **privacy** and **performance**.
+
+The privacy concnern with respect to the problem statement is that Spark displays the content of accumulators with their count in the Yarn UI/logs. This was challenging as Users/entities are sensitive information and should not be leaked.  
+The performance on using the HLL would not be 100% and there could possibly be an error of around 1% when the data entries are in the excess of 1 billion. Thus, using HLL means compromising on a bit of accuracy to be more efficient in terms of space complexity.
+Another major point to keep in mind is the persistence of data. Every I/O operation is very costly so adding a new stage in the pipeline would not be very suitable, so we need to take care of this as well.
+
+So as part of the solution we would the following steps were thought of:
+   
+   1) Generating Datasets to test on
+
+First need to be able to generate Random data for unique user count (meaningful dataset generation). There are three kinds of dataset that could be considered for testing the algorithm such as:
+
+- Uniformly distributed users’ dataset
+- Skewly distribution user dataset
+- An already published dataset that can be useful
+
+2) Choosing the Data Structure and implementation of HLL
+
+The following are the two approaches that we could take:
+
+**Solution 1 Approach**
+
+Define the internal data structure to store the data and expose only the count to the user with the HLL algorithm used in backdrop either from spark or from some other open-source libraries. Here we can use any of the data structures described above such as UDAF’s, accumulators or even standalone implementations of HLL.
+
+**Solution 2 Approach**
+
+Define Map Accumulator for unique user counting. Define the internal data structure to store the data and expose only the count to the user. Thereby keeping the privacy issue checked.
+
+There are two open-source implementations found for the HLL algorithm             sql-alchemy and stream-lib. Both implementations are open source and could be attempted to integrate with UDAF's or accumulators. The main difference in the implementation is in the hash function that these two algorithms use.
+
+The implementation provided by spark approx_distinct_count is an extension of the imperative aggregate class and only intakes SQL type expressions. 
+
+
+3)	Wrapping everything in a main function
+
+Then have the main class defined which wraps everything and then outputs the results to the user. The main class shall take input the dataset and output the unique user ID’s present in it using any one of the two approaches described above.
+
+4)	Testing of the code
+
+Write well established test suite having unit tests covering all the scenarios.
 
 
 ## Project Strucuture
@@ -55,7 +98,12 @@ project
     │               │   ├── HyperLogLogPlusAggregator.scala
     │               │   ├── using_hll_accumulator.scala
     │               │   ├── using_hll_defined_by_me.scala
+    │               │   ├── mains.scala
     │               │   └── using_hll_udaf.scala
+    │               │   ├── MapAccumulator.scala
+    │               │   ├── hll_spark_inbuilt.scala
+    │               │   └── using_map_accumulator.scala
+    |    
     │               └── others
     │                   ├── count_rows_using_udaf.scala
     │                   ├── row_count_using_count.scala
@@ -86,9 +134,16 @@ Now going through the files in the **com.important** ::
 
 **HyperLogLogPlusAggregator.scala**- This file contains the code for HLL Algorithm used from an open source library and integrated with UDAF class of Spark.
 
+**mains.scala**- This file is sort of a main class which takes input the dataset path from the user and then the solution approach i.e. UDAF or accumulators based and then whether to use HLL or not. It outputs the result to teh user.
+
+**MapAccumulator.scala**- This file contains the code for Map Accumulator used to count the unique ID's in the dataset. This gives the exact correct ans for the dataset.
+
 **using_hll_accumulator.scala**- This file contains the implementation of usage of the accumulator defined in the **HLLAccumulator.scala** .
 
 **using_hll_defined_by_me**.scala- This file contains the implementation of usage of the HLL class defined in the **hll_defined_by_me.scala** .
 
 **using_hll_udaf.scala**- This file contains the implementation of usage of the udaf defined in the **HyperLogLogPlusAggregator.scala** .
 
+**using_map_accumulator**- This file contains the implementation of usage of the map accumulator defined in the **MapAccumulator.scala**
+
+**hll_spark_inbuilt.scala**- This file contains the implementtion of usage of the spark inbuilt function to compute the unique count.

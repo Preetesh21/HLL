@@ -1,4 +1,4 @@
-package com.important
+package com.cardinality
 
 import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus
 import org.apache.spark.util.AccumulatorV2
@@ -10,12 +10,8 @@ class HLLAccumulator[T](precisionValue: Int = 12) extends AccumulatorV2[String, 
 
   private var hll: HyperLogLogPlus = instance()
 
-  override def isZero: Boolean = {/**
-   * An [[AccumulatorV2 accumulator]] for counting unique elements using a com.important.HyperLogLog
-   *
-   */
-    println("size "+ hll.cardinality())
-
+  override def isZero: Boolean = {
+   // An [[AccumulatorV2 accumulator]] for counting unique elements using a com.important.HyperLogLog
     hll.cardinality() == 0
   }
 

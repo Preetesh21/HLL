@@ -1,4 +1,4 @@
-package com.important
+package com.cardinality
 
 import com.clearspring.analytics.stream.cardinality.HyperLogLogPlus
 import org.apache.spark.sql.Row

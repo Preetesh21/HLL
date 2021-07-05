@@ -6,7 +6,7 @@ import org.apache.spark.sql.functions.col
 object count_rows_using_udaf {
   def main(args: Array[String]): Unit = {
     println("Hello world")
-    val spark = SparkSession.builder().master("local[8]").appName("Demo3").getOrCreate()
+    val spark = SparkSession.builder().appName("Demo3").getOrCreate()
     var sc = spark.sparkContext
     // Reading the csv file => Change the path if needed.
 

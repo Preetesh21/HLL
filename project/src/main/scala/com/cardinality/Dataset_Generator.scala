@@ -1,7 +1,8 @@
-package com.important
+package com.cardinality
 
-import org.apache.spark.sql.functions.{rand, substring}
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.functions.{rand, substring}
+import org.apache.spark.sql.types.StringType
 
 import scala.util.Random
 
@@ -31,7 +32,36 @@ object Dataset_Generator {
         ds = ds.withColumn("Col-" + i.toString, substring(rand(), 3, 4).cast("bigint"))
       }
     }
+    ds=ds.withColumn("value", ds("value").cast(StringType))
     ds // return ds
+  }
+
+  def create(category: String, rows: String, cols: String,spark:SparkSession):DataFrame = {
+    val form = category
+
+    if (form == "normal") {
+      val ds = createDummyDataset(rows.toInt, cols.toInt, spark)
+      ds
+      //ds.repartition(1).write.option("header", true).format("csv").save("./src/main/resources/data")
+    }
+
+    else {
+      val dist = Map(21 -> 0.5, 31 -> 0.3, 41 -> 0.2)
+      val columns = cols.toInt
+      val row = rows.toInt
+      import spark.implicits._
+      var ds = Seq.fill(row)(sample(dist)).toDF()
+
+      if (columns > 1) {
+        for (i <- 2 to columns) {
+          ds = ds.withColumn("Col-" + i.toString, substring(rand(), 3, 4).cast("bigint"))
+        }
+      }
+      ds=ds.withColumn("value", ds("value").cast(StringType))
+      ds
+      //ds.repartition(1).write.option("header",true).format("csv").save("./src/main/resources/data")
+
+    }
   }
 
   def main(args: Array[String]): Unit = {
@@ -40,28 +70,5 @@ object Dataset_Generator {
       .master("local[8]")
       .appName("SparkKMeans")
       .getOrCreate()
-    val form = args(0)
-
-    if (form == "normal") {
-      val ds = createDummyDataset(args(1).toInt, args(2).toInt, spark)
-      ds.repartition(1).write.option("header", true).format("csv").save("./src/main/resources/data")
-    }
-
-    else {
-      val dist = Map(21 -> 0.5, 31 -> 0.3, 41 -> 0.2)
-      val columns = args(2).toInt
-      val rows = args(1).toInt
-      import spark.implicits._
-      var ds = Seq.fill(rows)(sample(dist)).toDF()
-
-      if (columns > 1) {
-        for (i <- 2 to columns) {
-          ds = ds.withColumn("Col-" + i.toString, substring(rand(), 3, 4).cast("bigint"))
-        }
-      }
-      ds.repartition(1).write.option("header", true).format("csv").save("./src/main/resources/data")
-
-    }
-    spark.stop()
   }
 }

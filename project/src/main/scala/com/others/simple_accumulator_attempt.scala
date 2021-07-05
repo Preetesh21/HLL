@@ -6,7 +6,6 @@ object simple_accumulator_attempt {
   def main(args: Array[String]): Unit = {
     val spark = SparkSession
       .builder
-      .master("local[8]")
       .appName("SparkKMeans")
       .getOrCreate()
     val sc = spark.sparkContext

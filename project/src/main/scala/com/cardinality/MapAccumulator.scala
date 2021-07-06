@@ -11,26 +11,19 @@ import scala.collection.mutable
  */
 
 
-class MapAccumulator extends AccumulatorV2[(String, Int), List[(String, Int)]] {
+class MapAccumulator(shouldDisplay:Boolean) extends AccumulatorV2[(String, Int), List[(String, Int)]] {
 
   private val underlyingMap: mutable.HashMap[String, Int] = mutable.HashMap.empty
   override def isZero: Boolean = underlyingMap.isEmpty
 
   // A flag variable taking boolean value to decide whether to depict the original keys or not
-  private var shouldDisplay=false
+ // private var shouldDisplay:Boolean=true
 
   // The replacement key in case the original keys must be hidden
   val keyword="***********"
 
-  // Constructor taking value for shouldDisplay variable
-  def this(shouldDisplay:Boolean)
-  {
-    this()
-    this.shouldDisplay=shouldDisplay
-  }
-
   override def copy(): AccumulatorV2[(String, Int), List[(String, Int)]] = {
-    val newMapAccumulator = new MapAccumulator()
+    val newMapAccumulator = new MapAccumulator(shouldDisplay)
     underlyingMap.foreach(newMapAccumulator.add)
     newMapAccumulator
   }
@@ -42,15 +35,17 @@ class MapAccumulator extends AccumulatorV2[(String, Int), List[(String, Int)]] {
   }
 
   override def value: List[(String,Int)] = {
-    if (shouldDisplay){
-      var finalMap=underlyingMap.toList
-      finalMap=finalMap.map{ case (x, y) => (keyword, y) }
+    if (shouldDisplay) {
+      var finalMap = underlyingMap.toList
+      finalMap = finalMap.map { case (x, y) => (keyword, y) }
       finalMap
     }
-    else
-      underlyingMap.toMap.toList
-  }
+    else {
+      //
+      underlyingMap.toList
 
+    }
+  }
   override def add(kv: (String, Int)): Unit = {
     val (k, v) = kv
     underlyingMap += k -> (underlyingMap.getOrElse(k, 0) + v)

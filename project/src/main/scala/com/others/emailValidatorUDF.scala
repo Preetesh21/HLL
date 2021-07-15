@@ -37,6 +37,7 @@ object emailValidatorUDF {
     val spark = SparkSession
       .builder
       .appName("SparkKMeans")
+      .master("local[*]")
       .getOrCreate()
     val sc = spark.sparkContext
 

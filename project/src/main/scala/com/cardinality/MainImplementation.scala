@@ -26,7 +26,7 @@ object MainImplementation {
     var Technique: Int = 0
     print(" The technique that could be deployed \n" +
       "[1]-> HLL integrated with Accumulator Datastructures  \n" +
-      "[2]-> HLL integrated with UDAF datastructures  \n" +
+      "[2]-> HLL integrated with UDAF datastructures \n" +
       "[3]-> HLL provided by spark  \n" +
       "[4]-> Map Accumulator Solution \n"+args(1).toInt + "\n")
 
@@ -34,7 +34,7 @@ object MainImplementation {
 
     val spark = SparkSession
       .builder
-      .appName("Spark_Main")
+      .appName("CardinalityEstimation")
       .getOrCreate()
 
     val sc = spark.sparkContext
@@ -71,14 +71,22 @@ object MainImplementation {
         if(args.length==5) {
           param = args(4).toBoolean
         }
+        if(param){
+          val mapAccumulator = new MapAccumulator(false)
+          sc.register(mapAccumulator,"accumulator")
 
-        val mapAccumulator = new MapAccumulator(param)
-        sc.register(mapAccumulator,"accumulator")
+          dataframe=dataframe.map { x => mapAccumulator.add(x.getAs[java.lang.String]("value"),1); x }(RowEncoder(dataframe.schema))
+          dataframe.collect()
+          println(mapAccumulator.value)
+        }
+        else{
+          val mapAccumulator = new MapAccumulator2
+          sc.register(mapAccumulator,"accumulator")
 
-        dataframe=dataframe.map { x => mapAccumulator.add(x.getAs[java.lang.String]("value"),1); x }(RowEncoder(dataframe.schema))
-        dataframe.collect()
-
-        //println(acc.value)
+          dataframe=dataframe.map { x => mapAccumulator.add(x.getAs[java.lang.String]("value"),1); x }(RowEncoder(dataframe.schema))
+          dataframe.collect()
+          println(mapAccumulator.value)
+        }
     }
     spark.stop()
   }
